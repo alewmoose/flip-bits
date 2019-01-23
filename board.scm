@@ -33,28 +33,31 @@
     (make-vector size 0))
 
   (define (board-pp b)
-    (let ((size (board-size b)))
-      (newline)
-      (printf "--------------------~%")
-      (printf "Size: ~a~%" size)
-      (printf "--------------------~%")
-      (for y = 0 to (- size 1)
-        (for x = 0 to (- size 2)
-          (printf "~a " (board-bit b y x)))
-        (printf "~a~%" (board-bit b y (- size 1)))))
-      (printf "--------------------~%")
-      (let* ((nums->str (lambda (nums)
-                          (foldl string-append ""
-                                 (map (lambda (n) (sprintf "~a " n))
-                                      (vector->list nums)))))
-             (pp-nums (lambda (name v)
-                        (printf "~a: ~a~%"
-                                name
-                                (nums->str v)))))
-        (pp-nums "rows" (board-row-nums b))
-        (pp-nums "cols" (board-col-nums b)))
-      (printf "--------------------~%")
-      (newline))
+    (define (nums->str nums)
+      (foldl string-append ""
+             (map (lambda (n) (sprintf "~a " n))
+                  (vector->list nums))))
+    (define (pp-nums name v) (printf "~a: ~a~%" name (nums->str v)))
+    (define (p-header b) (printf "Size: ~a~%" (board-size b)))
+    (define (p-bits b)
+      (let ((size (board-size b)))
+        (for y = 0 to (- size 1)
+          (for x = 0 to (- size 2)
+            (printf "~a " (board-bit b y x)))
+          (printf "~a~%" (board-bit b y (- size 1))))))
+    (define (p-footer b)
+      (pp-nums "rows" (board-row-nums b))
+      (pp-nums "cols" (board-col-nums b)))
+    (define (p-vline) (printf "----~%"))
+    (newline)
+    (p-vline)
+    (p-header b)
+    (p-vline)
+    (p-bits b)
+    (p-vline)
+    (p-footer b)
+    (p-vline)
+    (newline))
 
   (define (board-bit b row col)
     (vector-ref
@@ -70,8 +73,9 @@
 
 
   (define (make-rand-board size)
-    (make-vector size 1)))
+    (make-vector size 1))
 
 
+)
 
 
