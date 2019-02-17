@@ -1,9 +1,9 @@
-(module board (make-blank-board make-rand-board)
+(module board
+  (make-blank-board make-rand-board board-bit board-bit-flip!)
 
 	(import
     (scheme)
     (chicken base)
-    (chicken format)
     (chicken bitwise)
     (chicken random))
 
@@ -21,9 +21,9 @@
     (make-vector size 0))
 
   (define (board-bit b row col)
-    (vector-ref
-      (vector-ref (board-bits b) row)
-      col))
+    (vector-ref (vector-ref (board-bits b)
+                            row)
+                col))
 
   (define (board-bit-set! b row col val)
     (define (nums-set! nums numi i val)
@@ -40,6 +40,11 @@
     (vector-set! (vector-ref (board-bits b) row) col val)
     (nums-set! (board-row-nums b) row col val)
     (nums-set! (board-col-nums b) col row val))
+
+  (define (board-bit-flip! b row col)
+    (board-bit-set!
+      b row col
+      (modulo (add1 (board-bit b row col)) 2)))
 
   (define (make-blank-board size)
     (make-board
