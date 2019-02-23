@@ -1,6 +1,7 @@
 flip-bits
 board
-board.import.scm
+screen
+*.import.scm
 *.link
 *.c
 *.o
