@@ -9,32 +9,34 @@
 
 (define size 4)
 
-(define board-have (make-blank-board size))
-(define board-want (make-rand-board size))
-(define cursor (make-cursor size 0 0))
-
 (ui-setup)
 
-(win-init size)
+(let round-loop ()
+  (let ((board-have (make-blank-board size))
+        (board-want (make-rand-board size))
+        (cursor (make-cursor size 0 0)))
+    (win-init size)
+    (win-redraw board-have board-want cursor)
 
-(win-redraw board-have board-want cursor)
-
-(let loop ((input (read-input))
-           (quit? #f))
-  (match input
-    ((or 'up 'down 'left 'right)
-     (begin
-       (set! cursor (move-cursor cursor input))
-       (set-cursor cursor)
-       (win-refresh)))
-    ('quit (set! quit? #t))
-    ('flip
-     (begin
-      (board-bit-flip! board-have (cursor-y cursor) (cursor-x cursor))
-      (win-redraw board-have board-want cursor)))
-    (_ (void)))
-  (unless quit?
-    (loop (read-input) #f)))
+    (let input-loop ()
+      (let ((input (read-input)))
+        (match input
+          ((or 'up 'down 'left 'right)
+           (begin
+             (set! cursor (move-cursor cursor input))
+             (set-cursor cursor)
+             (win-refresh)
+             (input-loop)))
+        ('flip
+         (begin
+           (board-bit-flip! board-have (cursor-y cursor) (cursor-x cursor))
+           (win-redraw board-have board-want cursor)
+           (if (equal? board-have board-want)
+               (begin (sleep 1)
+                      (round-loop))
+               (input-loop))))
+        ('quit (void))
+        (_ (input-loop)))))))
 
 (ui-shutdown)
 

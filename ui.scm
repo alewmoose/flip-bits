@@ -23,6 +23,9 @@
   #include <ncurses.h>
 
   static WINDOW *win;
+
+  #define COLOR_NORMAL COLOR_PAIR(1)
+  #define COLOR_CORRECT COLOR_PAIR(3)
   <#
 
   (define ui-setup
@@ -32,8 +35,6 @@
       noecho();
       cbreak();
       set_escdelay(0);
-      // keypad(stdscr, true);
-      /*
       init_pair(1, COLOR_WHITE,   COLOR_BLACK);
       init_pair(2, COLOR_YELLOW,  COLOR_BLACK);
       init_pair(3, COLOR_GREEN,   COLOR_BLACK);
@@ -41,7 +42,6 @@
       init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
       init_pair(6, COLOR_CYAN,    COLOR_BLACK);
       init_pair(7, COLOR_RED,     COLOR_BLACK);
-      */
       "))
 
   (define ui-shutdown
@@ -108,30 +108,43 @@
   (define (draw-row-nums board-have board-want)
     (define size (board-size board-want))
     (let loop ((i 0))
-      (draw-row-num
-        size i
-        (board-row-num board-want i))
-      (if (< i (sub1 size))
-          (loop (add1 i)))))
-
-  (define (draw-col-nums board-have board-want)
-    (define size (board-size board-want))
-    (let loop ((i 0))
-      (draw-col-num
-        size i
-        (board-col-num board-want i))
+      (let* ((row-num-have (board-row-num board-have i))
+             (row-num-want (board-row-num board-want i))
+             (correct-row-num? (= row-num-have row-num-want)))
+        (draw-row-num size i row-num-want correct-row-num?))
       (if (< i (sub1 size))
           (loop (add1 i)))))
 
   (define draw-row-num
-    (foreign-lambda* void ((int size) (int i) (int num)) "
+    (foreign-lambda* void ((int size)
+                           (int i)
+                           (int num)
+                           (bool correct)) "
+      if (correct)
+        wattron(win, COLOR_CORRECT);
       int y = 2 * i + 1;
       int x = size * 2 + 1;
       mvwprintw(win, y, x, \"%d\", num);
+      wattron(win, COLOR_NORMAL);
       "))
 
+  (define (draw-col-nums board-have board-want)
+    (define size (board-size board-want))
+    (let loop ((i 0))
+      (let* ((col-num-have (board-col-num board-have i))
+             (col-num-want (board-col-num board-want i))
+             (correct-col-num? (= col-num-have col-num-want)))
+        (draw-col-num size i col-num-want correct-col-num?))
+      (if (< i (sub1 size))
+          (loop (add1 i)))))
+
   (define draw-col-num
-    (foreign-lambda* void ((int size) (int i) (int num)) "
+    (foreign-lambda* void ((int size)
+                           (int i)
+                           (int num)
+                           (bool correct)) "
+      if (correct)
+        wattron(win, COLOR_CORRECT);
       char buf[32];
       int y = size * 2 + 1;
       int x = 2 * i + 1;
@@ -142,6 +155,7 @@
         ch++;
         y++;
       }
+      wattron(win, COLOR_NORMAL);
       "))
 
   (define-record cursor size y x)
