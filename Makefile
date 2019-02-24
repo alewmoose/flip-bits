@@ -1,5 +1,5 @@
 EXE=flip-bits
-MOD=board screen
+MOD=board ui
 
 TOP_SRC=$(EXE).scm
 MOD_SRC=$(MOD:%.scm)

@@ -1,5 +1,12 @@
-(module board
-  (make-blank-board make-rand-board board-bit board-bit-flip!)
+(module board (
+  make-blank-board
+  make-rand-board
+  board-bit
+  board-bit-flip!
+  board-col-num
+  board-row-num
+  board-size
+  )
 
 	(import
     (scheme)
@@ -74,6 +81,13 @@
     (let ((b (make-blank-board size)))
       (board-rand-fill! b size)
       b))
+
+  (define (board-col-num b n)
+    (vector-ref (board-col-nums b) n))
+
+  (define (board-row-num b n)
+    (vector-ref (board-row-nums b) n))
+
 )
 
 
