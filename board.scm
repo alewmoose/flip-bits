@@ -28,9 +28,9 @@
     (make-vector size 0))
 
   (define (board-bit b row col)
-    (vector-ref (vector-ref (board-bits b)
-                            row)
-                col))
+    (vector-ref
+      (vector-ref (board-bits b) row)
+      col))
 
   (define (board-bit-set! b row col val)
     (define (nums-set! nums numi i val)
