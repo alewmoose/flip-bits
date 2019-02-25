@@ -12,16 +12,15 @@
     (scheme)
     (chicken base)
     (chicken bitwise)
-    (chicken random))
+    (chicken random)
+    (utils))
 
   (define-record board size bits row-nums col-nums)
 
   (define (make-bits size)
     (let ((bits (make-vector size)))
-      (let loop ((n 0))
-        (when (< n size)
-          (vector-set! bits n (make-vector size 0))
-          (loop (add1 n))))
+      (for n = 0 to (sub1 size)
+        (vector-set! bits n (make-vector size 0)))
       bits))
 
   (define (make-nums size)
@@ -73,11 +72,8 @@
              (max-nr (floor (* nr-cells 3/4)))
              (to-set (+ min-nr
                         (pseudo-random-integer (- max-nr min-nr)))))
-        (let loop ((i to-set))
-          (if (> i 0)
-              (begin
-                (set-rand-bit! b)
-                (loop (sub1 i)))))))
+        (for n = to-set downto 1
+                (set-rand-bit! b))))
     (let ((b (make-blank-board size)))
       (board-rand-fill! b size)
       b))

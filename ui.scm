@@ -17,7 +17,8 @@
     (chicken base)
     (matchable)
     (chicken foreign)
-    (board))
+    (board)
+    (utils))
 
   #>
   #include <ncurses.h>
@@ -85,20 +86,11 @@
       mvwaddch(win, len, len, ACS_LRCORNER);
       "))
 
-  (define (coord-iter size cb)
-    (let loop-y ((y 0))
-      (let loop-x ((x 0))
-        (cb y x)
-        (if (< x (sub1 size))
-            (loop-x (add1 x))))
-      (if (< y (sub1 size))
-          (loop-y (add1 y)))))
-
   (define (draw-bits board)
-    (coord-iter
-      (board-size board)
-      (lambda (y x)
-        (draw-bit y x (board-bit board y x)))))
+    (let ((last (sub1 (board-size board))))
+      (for y = 0 to last
+        (for x = 0 to last
+          (draw-bit y x (board-bit board y x))))))
 
   (define draw-bit
     (foreign-lambda* void ((int y) (int x) (int bit)) "
@@ -107,13 +99,11 @@
 
   (define (draw-row-nums board-have board-want)
     (define size (board-size board-want))
-    (let loop ((i 0))
+    (for i = 0 to (sub1 size)
       (let* ((row-num-have (board-row-num board-have i))
              (row-num-want (board-row-num board-want i))
              (correct-row-num? (= row-num-have row-num-want)))
-        (draw-row-num size i row-num-want correct-row-num?))
-      (if (< i (sub1 size))
-          (loop (add1 i)))))
+        (draw-row-num size i row-num-want correct-row-num?))))
 
   (define draw-row-num
     (foreign-lambda* void ((int size)
@@ -130,13 +120,11 @@
 
   (define (draw-col-nums board-have board-want)
     (define size (board-size board-want))
-    (let loop ((i 0))
+    (for i = 0 to (sub1 size)
       (let* ((col-num-have (board-col-num board-have i))
              (col-num-want (board-col-num board-want i))
              (correct-col-num? (= col-num-have col-num-want)))
-        (draw-col-num size i col-num-want correct-col-num?))
-      (if (< i (sub1 size))
-          (loop (add1 i)))))
+        (draw-col-num size i col-num-want correct-col-num?))))
 
   (define draw-col-num
     (foreign-lambda* void ((int size)
