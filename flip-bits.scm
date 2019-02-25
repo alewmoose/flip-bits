@@ -2,12 +2,39 @@
   (scheme)
   (chicken base)
   (chicken pretty-print)
+  (chicken process-context)
   (args)
   (matchable)
   (board)
   (ui))
 
-(define size 4)
+(define (get-size-arg)
+  (define default-size 4)
+  (define (valid-size? size)
+    (and (number? size)
+         (>= size 4)
+         (<= size 16)))
+  (args:width 16)
+  (args:indent 2)
+  (define opts
+    (list (args:make-option (s size) (required: "size") "Board size"
+            (set! arg (if arg (string->number arg) default-size)))
+          (args:make-option (h help) #:none "Display this text"
+            (usage))))
+  (define (usage)
+    (newline)
+    (print "Usage: flip-bits [options...]")
+    (newline)
+    (print "Options:")
+    (print (args:usage opts))
+    (exit))
+  (receive (options operands)
+    (args:parse (command-line-arguments) opts)
+    (let* ((size-param (assoc 'size options))
+           (size (and size-param (cdr size-param))))
+      (if (valid-size? size) size default-size))))
+
+(define size (get-size-arg))
 
 (ui-setup)
 
