@@ -26,7 +26,10 @@
   static WINDOW *win;
 
   #define COLOR_NORMAL COLOR_PAIR(1)
-  #define COLOR_CORRECT COLOR_PAIR(3)
+  #define COLOR_BIT_ON (COLOR_PAIR(1) | A_BOLD)
+  #define COLOR_BIT_OFF (COLOR_PAIR(1))
+  #define COLOR_NUM_CORRECT (COLOR_PAIR(3) | A_BOLD)
+  #define COLOR_NUM_NORMAL (COLOR_PAIR(1) | A_BOLD)
   <#
 
   (define ui-setup
@@ -37,7 +40,7 @@
       cbreak();
       set_escdelay(0);
       init_pair(1, COLOR_WHITE,   COLOR_BLACK);
-      init_pair(2, COLOR_YELLOW,  COLOR_BLACK);
+      init_pair(2, COLOR_BLACK,  COLOR_BLACK);
       init_pair(3, COLOR_GREEN,   COLOR_BLACK);
       init_pair(4, COLOR_BLUE,    COLOR_BLACK);
       init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
@@ -62,7 +65,6 @@
 
       win = newwin(win_height, win_width, win_top, win_left);
       keypad(win, true);
-      // wattrset(win, COLOR_PAIR(1));
       "))
 
   (define (win-redraw board-have board-want cursor)
@@ -80,6 +82,7 @@
 
   (define draw-border
     (foreign-lambda* void ((int size)) "
+      wattrset(win, COLOR_NORMAL);
       int len = size * 2;
       mvwvline(win, 1, len, ACS_VLINE, len-1);
       mvwhline(win, len, 0, ACS_HLINE, len);
@@ -94,6 +97,7 @@
 
   (define draw-bit
     (foreign-lambda* void ((int y) (int x) (int bit)) "
+      wattrset(win, bit ? COLOR_BIT_ON : COLOR_BIT_OFF);
       mvwaddch(win, y*2 + 1, x*2 + 1, bit + '0');
       "))
 
@@ -111,11 +115,12 @@
                            (int num)
                            (bool correct)) "
       if (correct)
-        wattron(win, COLOR_CORRECT);
+        wattron(win, COLOR_NUM_CORRECT);
+      else
+        wattron(win, COLOR_NUM_NORMAL);
       int y = 2 * i + 1;
       int x = size * 2 + 1;
       mvwprintw(win, y, x, \"%d\", num);
-      wattron(win, COLOR_NORMAL);
       "))
 
   (define (draw-col-nums board-have board-want)
@@ -132,7 +137,9 @@
                            (int num)
                            (bool correct)) "
       if (correct)
-        wattron(win, COLOR_CORRECT);
+        wattron(win, COLOR_NUM_CORRECT);
+      else
+        wattron(win, COLOR_NUM_NORMAL);
       char buf[32];
       int y = size * 2 + 1;
       int x = 2 * i + 1;
