@@ -149,10 +149,8 @@
   (define-record cursor size y x)
 
   (define (move-cursor cursor dir)
-    (define (valid? n)
-      (and (>= n 0)
-           (< n (cursor-size cursor))))
-    (let* ((y (cursor-y cursor))
+    (let* ((size (cursor-size cursor))
+           (y (cursor-y cursor))
            (x (cursor-x cursor))
            (ny (match dir ('up (sub1 y))
                           ('down (add1 y))
@@ -160,10 +158,9 @@
            (nx (match dir ('left (sub1 x))
                           ('right (add1 x))
                           (_ x))))
-      (if (and (valid? ny)
-               (valid? nx))
-          (make-cursor (cursor-size cursor) ny nx)
-          cursor)))
+          (make-cursor size
+                       (modulo ny size)
+                       (modulo nx size))))
 
   (define (cursor->win-coords cursor)
     (values (+ (* (cursor-y cursor) 2) 1)
