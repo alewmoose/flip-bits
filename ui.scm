@@ -16,6 +16,7 @@
     (scheme)
     (chicken base)
     (matchable)
+    (chicken format)
     (chicken foreign)
     (board)
     (utils))
@@ -181,27 +182,58 @@
     (foreign-lambda* void ((int y) (int x)) "
       wmove(win, y, x);
       "))
+  (define (match-sequences seqs gen)
+    (define (split-seqs seqs)
+      (define (iter left empty nonempty)
+          (if (null? left)
+            (values empty nonempty)
+            (if (null? (cadr (car left)))
+              (iter (cdr left) (cons (car left) empty) nonempty)
+              (iter (cdr left) empty (cons (car left) nonempty)))))
+      (iter seqs '() '()))
+    (define (iter left passed want)
+      (if (null? left)
+        (match-sequences passed gen)
+        (let* ((left-first (car left))
+               (left-rest (cdr left))
+               (val (car left-first))
+               (items (cadr left-first))
+               (item-first (car items))
+               (items-rest (cdr items)))
+          (if (equal? item-first want)
+            (iter left-rest (cons (list val items-rest) passed) want)
+            (iter left-rest passed want)))))
+    (let-values (((empty nonempty) (split-seqs seqs)))
+      (cond
+        ((not (null? empty)) (caar empty))
+        ((null? nonempty) #f)
+        (else (iter nonempty '() (gen))))))
 
   (define key-up (foreign-value "KEY_UP" int))
   (define key-down (foreign-value "KEY_DOWN" int))
   (define key-left (foreign-value "KEY_LEFT" int))
   (define key-right (foreign-value "KEY_RIGHT" int))
 
-  (define (read-input)
-    (let loop ((ch (getch)))
-      (cond
-        ((= ch (char->integer #\q)) 'quit)
-        ((= ch (char->integer #\Q)) 'quit)
-        ((= ch key-up) 'up)
-        ((= ch key-down) 'down)
-        ((= ch key-left) 'left)
-        ((= ch key-right) 'right)
-        ((= ch (char->integer #\space)) 'flip)
-        (else (loop (getch))))))
+  (define key-seqs
+    `((quit (,(char->integer #\q)))
+      (quit (,(char->integer #\Q)))
+      (flip (,(char->integer #\space)))
+      (up    (,key-up))
+      (down  (,key-down))
+      (left  (,key-left))
+      (right (,key-right))
+      (flip-up    (27 91 49 59 53 65))
+      (flip-down  (27 91 49 59 53 66))
+      (flip-right (27 91 49 59 53 67))
+      (flip-left  (27 91 49 59 53 68))))
 
   (define getch
     (foreign-lambda* int () "
       C_return(wgetch(win));
       "))
+
+  (define (read-input)
+    (let ((input (match-sequences key-seqs getch)))
+      (or input (read-input))))
 
 )

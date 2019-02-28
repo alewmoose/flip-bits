@@ -6,7 +6,8 @@
   (args)
   (matchable)
   (board)
-  (ui))
+  (ui)
+  (utils))
 
 (define (get-size-arg)
   (define default-size 4)
@@ -36,6 +37,19 @@
 
 (define size (get-size-arg))
 
+(define (multi-flip! board cursor input)
+  (let ((last (sub1 (board-size board)))
+        (y (cursor-y cursor))
+        (x (cursor-x cursor)))
+    (match input
+      ('flip-up (for y = y downto 0
+                     (board-bit-flip! board y x)))
+      ('flip-down (for y = y to last
+                       (board-bit-flip! board y x)))
+      ('flip-left (for x = x downto 0
+                       (board-bit-flip! board y x)))
+      ('flip-right (for x = x to last
+                        (board-bit-flip! board y x))))))
 (ui-setup)
 
 (let round-loop ()
@@ -44,26 +58,32 @@
         (cursor (make-cursor size 0 0)))
     (win-init size)
     (win-redraw board-have board-want cursor)
-
     (let input-loop ()
-      (let ((input (read-input)))
-        (match input
-          ((or 'up 'down 'left 'right)
-           (begin
-             (set! cursor (move-cursor cursor input))
-             (set-cursor cursor)
-             (win-refresh)
-             (input-loop)))
-        ('flip
-         (begin
-           (board-bit-flip! board-have (cursor-y cursor) (cursor-x cursor))
-           (win-redraw board-have board-want cursor)
-           (if (equal? board-have board-want)
-               (begin (sleep 1)
-                      (round-loop))
-               (input-loop))))
-        ('quit (void))
-        (_ (input-loop)))))))
+      (if (equal? board-have board-want)
+        (begin (sleep 1)
+               (round-loop))
+        (let ((input (read-input)))
+          (match input
+            ((or 'up 'down 'left 'right)
+             (begin
+               (set! cursor (move-cursor cursor input))
+               (set-cursor cursor)
+               (win-refresh)
+               (input-loop)))
+            ((or 'flip-up 'flip-down 'flip-left 'flip-right)
+             (begin
+               (multi-flip! board-have cursor input)
+               (win-redraw board-have board-want cursor)
+               (input-loop)))
+            ('flip
+             (begin
+               (board-bit-flip! board-have
+                                (cursor-y cursor)
+                                (cursor-x cursor))
+               (win-redraw board-have board-want cursor))
+               (input-loop))
+            ('quit (void))
+            (_ (input-loop))))))))
 
 (ui-shutdown)
 
