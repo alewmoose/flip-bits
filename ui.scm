@@ -3,6 +3,8 @@
   ui-shutdown
   win-init
   win-draw
+  win-free
+  screen-clear
   make-cursor
   move-cursor
   cursor-y
@@ -72,7 +74,6 @@
     (foreign-lambda* void ((Window win)) "
       delwin(win);
       "))
-
 
   (define (win-draw win board-have board-want cursor)
     (draw-border win (board-size board-have))
@@ -190,6 +191,7 @@
     (foreign-lambda* void ((Window win) (int y) (int x)) "
       wmove(win, y, x);
       "))
+
   (define (match-sequences seqs gen)
     (define (split-seqs seqs)
       (define (iter left empty nonempty)
@@ -249,4 +251,9 @@
     (or (match-sequences key-seqs (make-win-getch win))
         (read-input win)))
 
+  (define screen-clear
+    (foreign-lambda* void () "
+      clear();
+      refresh();
+      "))
 )

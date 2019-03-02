@@ -84,6 +84,10 @@
             ('quit (void))
             ('resize
              (begin
+               (win-free win)
+               (screen-clear)
+               (set! win (win-init size))
+               (win-draw win board-have board-want cursor)
                (input-loop)))
             (_ (input-loop))))))))
 
