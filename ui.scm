@@ -2,14 +2,13 @@
   ui-setup
   ui-shutdown
   win-init
-  win-redraw
+  win-draw
   make-cursor
   move-cursor
   cursor-y
   cursor-x
   set-cursor
   read-input
-  win-refresh ;; TODO: remove?
   )
 
   (import
@@ -75,7 +74,7 @@
       "))
 
 
-  (define (win-redraw win board-have board-want cursor)
+  (define (win-draw win board-have board-want cursor)
     (draw-border win (board-size board-have))
     (draw-bits win board-have)
     (draw-row-nums win board-have board-want)

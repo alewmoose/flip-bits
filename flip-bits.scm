@@ -57,7 +57,7 @@
         (board-want (make-rand-board size))
         (cursor (make-cursor size 0 0))
         (win (win-init size)))
-    (win-redraw win board-have board-want cursor)
+    (win-draw win board-have board-want cursor)
     (let input-loop ()
       (if (equal? board-have board-want)
         (begin (sleep 1)
@@ -72,14 +72,14 @@
             ((or 'flip-up 'flip-down 'flip-left 'flip-right)
              (begin
                (multi-flip! board-have cursor input)
-               (win-redraw win board-have board-want cursor)
+               (win-draw win board-have board-want cursor)
                (input-loop)))
             ('flip
              (begin
                (board-bit-flip! board-have
                                 (cursor-y cursor)
                                 (cursor-x cursor))
-               (win-redraw win board-have board-want cursor))
+               (win-draw win board-have board-want cursor))
                (input-loop))
             ('quit (void))
             ('resize
