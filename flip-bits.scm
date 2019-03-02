@@ -55,34 +55,36 @@
 (let round-loop ()
   (let ((board-have (make-blank-board size))
         (board-want (make-rand-board size))
-        (cursor (make-cursor size 0 0)))
-    (win-init size)
-    (win-redraw board-have board-want cursor)
+        (cursor (make-cursor size 0 0))
+        (win (win-init size)))
+    (win-redraw win board-have board-want cursor)
     (let input-loop ()
       (if (equal? board-have board-want)
         (begin (sleep 1)
                (round-loop))
-        (let ((input (read-input)))
+        (let ((input (read-input win)))
           (match input
             ((or 'up 'down 'left 'right)
              (begin
                (set! cursor (move-cursor cursor input))
-               (set-cursor cursor)
-               (win-refresh)
+               (set-cursor win cursor)
                (input-loop)))
             ((or 'flip-up 'flip-down 'flip-left 'flip-right)
              (begin
                (multi-flip! board-have cursor input)
-               (win-redraw board-have board-want cursor)
+               (win-redraw win board-have board-want cursor)
                (input-loop)))
             ('flip
              (begin
                (board-bit-flip! board-have
                                 (cursor-y cursor)
                                 (cursor-x cursor))
-               (win-redraw board-have board-want cursor))
+               (win-redraw win board-have board-want cursor))
                (input-loop))
             ('quit (void))
+            ('resize
+             (begin
+               (input-loop)))
             (_ (input-loop))))))))
 
 (ui-shutdown)
