@@ -9,7 +9,10 @@ LIBS=matchable
 LINK_LIBS=$(LIBS:%=-link %)
 LINK_FLAGS=-L -lncurses
 
-.PHONY: all clean
+PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+
+.PHONY: all clean install uninstall
 
 all: $(EXE)
 
@@ -25,3 +28,8 @@ $(EXE): $(TOP_SRC) $(MOD_IMP) $(MOD_OBJ)
 clean:
 	@-rm -f $(EXE) *.o *.import.scm *.link
 
+install: $(EXE)
+	@-install -m 755 $(EXE) $(BINDIR)
+
+uninstall:
+	@-rm -f $(BINDIR)/$(EXE)
