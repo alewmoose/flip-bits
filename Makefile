@@ -1,23 +1,24 @@
 EXE=flip-bits
-MOD=utils board ui
+MODS=utils board ui
 
 TOP_SRC=$(EXE).scm
-MOD_SRC=$(MOD:%.scm)
-MOD_IMP=$(MOD:%=%.import.scm)
-MOD_OBJ=$(MOD:%=%.o)
+MODS_IMP=$(MODS:%=%.import.scm)
+MODS_OBJ=$(MODS:%=%.o)
 LIBS=matchable
-LINK_LIBS=$(LIBS:%=-link %)
+IMPORT_LIBS=$(LIBS:%=-R %) $(MODS:%=-R %)
 LINK_FLAGS=-L -lncurses
 
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 
+
 .PHONY: all clean install uninstall
+
 
 all: $(EXE)
 
-$(EXE): $(TOP_SRC) $(MOD_IMP) $(MOD_OBJ)
-	csc -static $(LINK_LIBS) $(TOP_SRC) -o $(EXE) $(LINK_FLAGS)
+$(EXE): $(TOP_SRC) $(MODS_IMP) $(MODS_OBJ)
+	csc -static $(IMPORT_LIBS) $(TOP_SRC) -o $(EXE) $(LINK_FLAGS)
 
 %.import.scm : %.scm
 	$(eval MODULE=$(basename $<))
