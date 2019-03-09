@@ -7,6 +7,7 @@
   (matchable)
   (board)
   (ui)
+  (cursor)
   (utils))
 
 (define (get-size-arg)
@@ -66,7 +67,7 @@
           (match input
             ((or 'up 'down 'left 'right)
              (begin
-               (set! cursor (move-cursor cursor input))
+               (set! cursor (cursor-move cursor input))
                (set-cursor win cursor)
                (input-loop)))
             ((or 'flip-up 'flip-down 'flip-left 'flip-right)

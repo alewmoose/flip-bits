@@ -1,17 +1,12 @@
-(module ui (
-  ui-setup
-  ui-shutdown
-  win-init
-  win-draw
-  win-free
-  screen-clear
-  make-cursor
-  move-cursor
-  cursor-y
-  cursor-x
-  set-cursor
-  read-input
-  )
+(module ui
+  (ui-setup
+   ui-shutdown
+   win-init
+   win-draw
+   win-free
+   screen-clear
+   set-cursor
+   read-input)
 
   (import
     (scheme)
@@ -20,6 +15,7 @@
     (chicken format)
     (chicken foreign)
     (board)
+    (cursor)
     (utils))
 
   #>
@@ -162,22 +158,6 @@
       }
       wattron(win, COLOR_NORMAL);
       "))
-
-  (define-record cursor size y x)
-
-  (define (move-cursor cursor dir)
-    (let* ((size (cursor-size cursor))
-           (y (cursor-y cursor))
-           (x (cursor-x cursor))
-           (ny (match dir ('up (sub1 y))
-                          ('down (add1 y))
-                          (_ y)))
-           (nx (match dir ('left (sub1 x))
-                          ('right (add1 x))
-                          (_ x))))
-          (make-cursor size
-                       (modulo ny size)
-                       (modulo nx size))))
 
   (define (cursor->win-coords cursor)
     (values (+ (* (cursor-y cursor) 2) 1)

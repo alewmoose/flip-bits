@@ -1,5 +1,5 @@
 EXE=flip-bits
-MODS=utils board ui
+MODS=utils cursor board ui
 
 TOP_SRC=$(EXE).scm
 MODS_IMP=$(MODS:%=%.import.scm)
