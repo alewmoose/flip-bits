@@ -1,11 +1,11 @@
 (module ui
   (ui-setup
    ui-shutdown
-   win-init
-   win-draw
-   win-free
+   window-init
+   window-draw
+   window-free
    screen-clear
-   set-cursor
+   set-cursor-position
    read-input)
 
   (import
@@ -24,7 +24,7 @@
   #define COLOR_NORMAL COLOR_PAIR(1)
   #define COLOR_BIT_ON (COLOR_PAIR(1) | A_BOLD)
   #define COLOR_BIT_OFF (COLOR_PAIR(1))
-  #define COLOR_NUM_CORRECT (COLOR_PAIR(3) | A_BOLD)
+  #define COLOR_NUM_CORRECT (COLOR_PAIR(2) | A_BOLD)
   #define COLOR_NUM_NORMAL (COLOR_PAIR(1) | A_BOLD)
   <#
 
@@ -37,13 +37,8 @@
       noecho();
       cbreak();
       set_escdelay(0);
-      init_pair(1, COLOR_WHITE,   COLOR_BLACK);
-      init_pair(2, COLOR_BLACK,  COLOR_BLACK);
-      init_pair(3, COLOR_GREEN,   COLOR_BLACK);
-      init_pair(4, COLOR_BLUE,    COLOR_BLACK);
-      init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
-      init_pair(6, COLOR_CYAN,    COLOR_BLACK);
-      init_pair(7, COLOR_RED,     COLOR_BLACK);
+      init_pair(1, COLOR_WHITE, COLOR_BLACK);
+      init_pair(2, COLOR_GREEN, COLOR_BLACK);
       "))
 
   (define ui-shutdown
@@ -51,7 +46,7 @@
       endwin();
       "))
 
-  (define win-init
+  (define window-init
     (foreign-lambda* Window ((int board_size)) "
       int scr_height, scr_width;
       getmaxyx(stdscr, scr_height, scr_width);
@@ -66,17 +61,17 @@
       C_return(win);
       "))
 
-  (define win-free
+  (define window-free
     (foreign-lambda* void ((Window win)) "
       delwin(win);
       "))
 
-  (define (win-draw win board-have board-want cursor)
+  (define (window-draw win board-have board-want cursor)
     (draw-border win (board-size board-have))
     (draw-bits win board-have)
     (draw-row-nums win board-have board-want)
     (draw-col-nums win board-have board-want)
-    (set-cursor win cursor)
+    (set-cursor-position win cursor)
     (win-refresh win))
 
   (define win-refresh
@@ -120,9 +115,9 @@
                            (int num)
                            (bool correct)) "
       if (correct)
-        wattron(win, COLOR_NUM_CORRECT);
+        wattrset(win, COLOR_NUM_CORRECT);
       else
-        wattron(win, COLOR_NUM_NORMAL);
+        wattrset(win, COLOR_NUM_NORMAL);
       int y = 2 * i + 1;
       int x = size * 2 + 1;
       mvwprintw(win, y, x, \"%d\", num);
@@ -143,9 +138,9 @@
                            (int num)
                            (bool correct)) "
       if (correct)
-        wattron(win, COLOR_NUM_CORRECT);
+        wattrset(win, COLOR_NUM_CORRECT);
       else
-        wattron(win, COLOR_NUM_NORMAL);
+        wattrset(win, COLOR_NUM_NORMAL);
       char buf[32];
       int y = size * 2 + 1;
       int x = 2 * i + 1;
@@ -156,14 +151,13 @@
         ch++;
         y++;
       }
-      wattron(win, COLOR_NORMAL);
       "))
 
   (define (cursor->win-coords cursor)
     (values (+ (* (cursor-y cursor) 2) 1)
             (+ (* (cursor-x cursor) 2) 1)))
 
-  (define (set-cursor win cursor)
+  (define (set-cursor-position win cursor)
     (let-values (((y x) (cursor->win-coords cursor)))
       (wmove win y x)))
 
@@ -205,6 +199,8 @@
   (define key-right (foreign-value "KEY_RIGHT" int))
   (define key-resize (foreign-value "KEY_RESIZE" int))
 
+  (define control-prefix '(27 91 49 59 53))
+
   (define key-seqs
     `((quit   (,(char->integer #\q)))
       (quit   (,(char->integer #\Q)))
@@ -214,26 +210,23 @@
       (down   (,key-down))
       (left   (,key-left))
       (right  (,key-right))
-      (flip-up    (27 91 49 59 53 65))
-      (flip-down  (27 91 49 59 53 66))
-      (flip-right (27 91 49 59 53 67))
-      (flip-left  (27 91 49 59 53 68))))
+      (flip-up    (,@control-prefix 65))
+      (flip-down  (,@control-prefix 66))
+      (flip-right (,@control-prefix 67))
+      (flip-left  (,@control-prefix 68))))
 
   (define getch
     (foreign-lambda* int ((Window win)) "
       C_return(wgetch(win));
       "))
 
-  (define (make-win-getch win)
-    (lambda () (getch win)))
-
   (define (read-input win)
-    (or (match-sequences key-seqs (make-win-getch win))
+    (or (match-sequences key-seqs
+                         (lambda () (getch win)))
         (read-input win)))
 
   (define screen-clear
     (foreign-lambda* void () "
       clear();
       refresh();
-      "))
-)
+      ")))

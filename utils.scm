@@ -2,7 +2,7 @@
   (import scheme)
 
   (define-syntax for
-    (syntax-rules (to upto)
+    (syntax-rules (= to upto)
       ((_ n = s to e . forms)
        (let loop ((n s))
          (when (<= n e)

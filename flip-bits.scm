@@ -1,7 +1,6 @@
 (import
   (scheme)
   (chicken base)
-  (chicken pretty-print)
   (chicken process-context)
   (args)
   (matchable)
@@ -51,14 +50,15 @@
                        (board-bit-flip! board y x)))
       ('flip-right (for x = x to last
                         (board-bit-flip! board y x))))))
+
 (ui-setup)
 
 (let round-loop ()
   (let ((board-have (make-blank-board size))
         (board-want (make-random-board size))
         (cursor (make-cursor size 0 0))
-        (win (win-init size)))
-    (win-draw win board-have board-want cursor)
+        (win (window-init size)))
+    (window-draw win board-have board-want cursor)
     (let input-loop ()
       (if (equal? board-have board-want)
         (begin (sleep 1)
@@ -68,27 +68,27 @@
             ((or 'up 'down 'left 'right)
              (begin
                (set! cursor (cursor-move cursor input))
-               (set-cursor win cursor)
+               (set-cursor-position win cursor)
                (input-loop)))
             ((or 'flip-up 'flip-down 'flip-left 'flip-right)
              (begin
                (multi-flip! board-have cursor input)
-               (win-draw win board-have board-want cursor)
+               (window-draw win board-have board-want cursor)
                (input-loop)))
             ('flip
              (begin
                (board-bit-flip! board-have
                                 (cursor-y cursor)
                                 (cursor-x cursor))
-               (win-draw win board-have board-want cursor))
+               (window-draw win board-have board-want cursor))
                (input-loop))
             ('quit (void))
             ('resize
              (begin
-               (win-free win)
+               (window-free win)
                (screen-clear)
-               (set! win (win-init size))
-               (win-draw win board-have board-want cursor)
+               (set! win (window-init size))
+               (window-draw win board-have board-want cursor)
                (input-loop)))
             (_ (input-loop))))))))
 
