@@ -1,12 +1,11 @@
-(module board (
-  make-blank-board
-  make-rand-board
-  board-bit
-  board-bit-flip!
-  board-col-num
-  board-row-num
-  board-size
-  )
+(module board
+  (make-blank-board
+   make-random-board
+   board-bit
+   board-bit-flip!
+   board-col-num
+   board-row-num
+   board-size)
 
 	(import
     (scheme)
@@ -49,8 +48,11 @@
 
   (define (board-bit-flip! b row col)
     (board-bit-set!
-      b row col
-      (modulo (add1 (board-bit b row col)) 2)))
+      b
+      row
+      col
+      (modulo (add1 (board-bit b row col))
+              2)))
 
   (define (make-blank-board size)
     (make-board
@@ -59,7 +61,7 @@
       (make-nums size)
       (make-nums size)))
 
-  (define (make-rand-board size)
+  (define (make-random-board size)
     (define nr-cells (* size size))
     (define (set-rand-bit! b)
       (let ((y (pseudo-random-integer size))
@@ -73,7 +75,7 @@
              (to-set (+ min-nr
                         (pseudo-random-integer (- max-nr min-nr)))))
         (for n = to-set downto 1
-                (set-rand-bit! b))))
+             (set-rand-bit! b))))
     (let ((b (make-blank-board size)))
       (board-rand-fill! b size)
       b))
@@ -82,8 +84,5 @@
     (vector-ref (board-col-nums b) n))
 
   (define (board-row-num b n)
-    (vector-ref (board-row-nums b) n))
-
-)
-
+    (vector-ref (board-row-nums b) n)))
 

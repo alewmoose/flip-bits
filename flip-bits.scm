@@ -54,7 +54,7 @@
 
 (let round-loop ()
   (let ((board-have (make-blank-board size))
-        (board-want (make-rand-board size))
+        (board-want (make-random-board size))
         (cursor (make-cursor size 0 0))
         (win (win-init size)))
     (win-draw win board-have board-want cursor)
