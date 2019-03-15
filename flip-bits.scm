@@ -1,6 +1,7 @@
 (import
   (scheme)
   (chicken base)
+  (chicken condition)
   (chicken process-context)
   (args)
   (matchable)
@@ -9,8 +10,12 @@
   (cursor)
   (utils))
 
+(current-exception-handler
+  (lambda (exn)
+    (print-error-message exn (current-error-port))
+    (exit 1)))
+
 (define (get-size-arg)
-  (define default-size 4)
   (define (valid-size? size)
     (and (number? size)
          (>= size 4)
@@ -19,7 +24,7 @@
   (args:indent 2)
   (define opts
     (list (args:make-option (s size) (required: "size") "Board size"
-            (set! arg (if arg (string->number arg) default-size)))
+            (set! arg (if arg (string->number arg) #f)))
           (args:make-option (h help) #:none "Display this text"
             (usage))))
   (define (usage)
@@ -33,9 +38,32 @@
     (args:parse (command-line-arguments) opts)
     (let* ((size-param (assoc 'size options))
            (size (and size-param (cdr size-param))))
-      (if (valid-size? size) size default-size))))
+      (if (valid-size? size) size #f))))
 
-(define size (get-size-arg))
+(define (config-file)
+  (let ((home (get-environment-variable "HOME")))
+    (if home
+        (string-append home "/.config/flip-bits.conf")
+        (error "No HOME environment variable"))))
+
+(define (read-config)
+  (let ((conf-file (config-file)))
+    (call/cc
+      (lambda (k)
+        (with-exception-handler
+          (lambda (exn) (k '()))
+          (lambda ()
+            (with-input-from-file conf-file read)))))))
+
+(define (write-config conf)
+  (let ((conf-file (config-file)))
+    (with-output-to-file conf-file (lambda () (write conf)))))
+
+(define size (or (get-size-arg)
+                 (cadr (or (assoc 'size (read-config))
+                           '(size 4)))))
+
+(write-config `((size ,size)))
 
 (define (multi-flip! board cursor input)
   (let ((last (sub1 (board-size board)))
